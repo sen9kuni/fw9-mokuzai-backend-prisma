@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model cart_item {
+  id               Int               @id @default(autoincrement())
+  session_id       Int?
+  product_id       Int?
+  quantity         Int?
+  products         products?         @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shopping_session shopping_session? @relation(fields: [session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model category {
+  id       Int        @id @default(autoincrement())
+  name     String?
+  desc     String?
+  products products[]
+}
+
+model favorite {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  product_id Int?
+  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model order_details {
+  id          Int           @id @default(autoincrement())
+  user_id     Int?
+  total       Decimal?      @db.Decimal
+  name        String?
+  address     String?
+  payment     String?       @db.VarChar
+  users       users?        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_items order_items[]
+}
+
+model order_items {
+  id            Int            @id @default(autoincrement())
+  order_id      Int?
+  product_id    Int?
+  quantity      Int?
+  order_details order_details? @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products      products?      @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model products {
+  id            Int             @id @default(autoincrement())
+  name          String?         @db.VarChar
+  desc          String?
+  sku           String?         @db.VarChar
+  category_id   Int?
+  quantity      Int?
+  price         Decimal?        @db.Decimal
+  seller_id     Int?
+  condition     String?         @db.VarChar
+  category      category?       @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users         users?          @relation(fields: [seller_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cart_item     cart_item[]
+  favorite      favorite[]
+  image_product image_product[]
+  order_items   order_items[]
+  wishlist      wishlist[]
+}
+
+model profile {
+  id         Int     @id(map: "profile_pk") @default(autoincrement())
+  user_id    Int?    @unique(map: "user_un")
+  gender     String? @db.VarChar
+  store_name String? @db.VarChar
+  store_desc String?
+  picture    String? @db.VarChar
+  desc       String?
+  fullname   String? @db.VarChar
+  users      users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model shopping_session {
+  id        Int         @id @default(autoincrement())
+  user_id   Int?
+  total     Decimal?    @db.Decimal
+  users     users?      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cart_item cart_item[]
+}
+
+model users {
+  id               Int                @id(map: "users_pk") @default(autoincrement())
+  email            String?            @unique(map: "email_un") @db.VarChar
+  password         String?            @db.VarChar
+  roles            String?            @db.VarChar
+  favorite         favorite[]
+  order_details    order_details[]
+  products         products[]
+  profile          profile?
+  shopping_session shopping_session[]
+  wishlist         wishlist[]
+}
+
+model wishlist {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  product_id Int?
+  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model image_product {
+  id         Int       @id @default(autoincrement())
+  product_id Int?
+  image      String?   @db.VarChar
+  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
